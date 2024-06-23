@@ -1,24 +1,26 @@
-import os
-import pandas as pd
-from sklearn.preprocessing import StandardScaler
-# Укажите базовую директорию, где находятся ваши данные
-base_dir = ''
-# Загрузка данных
-train_data = pd.read_csv(os.path.join(base_dir, 'train', 'data_train.csv'))
-test_data = pd.read_csv(os.path.join(base_dir, 'test', 'data_test.csv'))
-# Определяем признаки и целевую переменную
-X_train = train_data.drop(columns=['temperature'])
-y_train = train_data['temperature']
-X_test = test_data.drop(columns=['temperature'])
-y_test = test_data['temperature']
-# Отделяем числовые признаки для стандартизации
-numerical_features = X_train.select_dtypes(include=['float64', 'int64']).columns
-# Стандартизируем числовые признаки
-scaler = StandardScaler()
-X_train[numerical_features] = scaler.fit_transform(X_train[numerical_features])
-X_test[numerical_features] = scaler.transform(X_test[numerical_features])
-# Сохранение предобработанных данных
-X_train.to_csv(os.path.join(base_dir, 'train', 'data_train_preprocessed.csv'), index=False)
-X_test.to_csv(os.path.join(base_dir, 'test', 'data_test_preprocessed.csv'), index=False)
-y_train.to_csv(os.path.join(base_dir, 'train', 'temp_train_preprocessed.csv'), index=False)
-y_test.to_csv(os.path.join(base_dir, 'test', 'temp_test_preprocessed.csv'), index=False)
+from sklearn.linear_model import LinearRegression       # Модель линейной регрессии
+import pandas as pd                                     # Библиотека Pandas для работы с табличными данными
+from joblib import dump                                 # в scikit-learn ничего такого особенного нет
+                                                        # пользуемся joblib
+
+# Читаем данные из файла
+DF = pd.read_csv('train/data_train_prep.csv', delimiter=',', header=0, index_col=False)
+
+# Выделяем признаки и целевой показатель
+X_train, y_train = DF.iloc[:,0:1], DF.iloc[:,1]
+#print(X_train)
+
+# Создаем и обучаем модель
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Метрики
+r_sq = model.score(X_train, y_train)
+print('Coefficient of determination', r_sq * 100, '%')
+print('intercept_', model.intercept_)
+print('Coefficients', model.coef_)
+
+# Сохраняем обученную модель в файл
+dump(model, 'model/model.joblib')  # чтобы сохранить объект
+
+print("Модель записана в файл model.joblib")
